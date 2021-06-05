@@ -5,7 +5,7 @@
 #include <math.h>
 
 unsigned char btn;
-enum matrix_States {matrix_waitStart, matrix_initGame, matrix_moveLeft, matrix_moveRight, matrix_nextLevel, matrix_nextLevelRelease, matrix_gameWon} matrix_State;
+enum matrix_States {matrix_waitStart, matrix_initGame, matrix_moveLeft, matrix_moveRight, matrix_nextLevel, matrix_nextLevelRelease, matrix_gameWon, matrix_gameOver} matrix_State;
 int matrixSMTick(int state) {
 	btn = ~PIND & 0x80;
 	
@@ -28,7 +28,7 @@ int matrixSMTick(int state) {
 				pattern = 0x00;
 				row=0xF1;
 				i=0;
-				length=0;
+				length=3;
 				start=1;
 			}
 			break;
@@ -43,8 +43,8 @@ int matrixSMTick(int state) {
 				gameTimer = 0;
 				patterns[0] = 0x00;
 				patterns[1] = 0x01;
-				patterns[2] = 0x00;
-				patterns[3] = 0x00;
+				patterns[2] = 0x01;
+				patterns[3] = 0x01;
 				patterns[4] = 0x00;
 			}
 			break;
@@ -71,7 +71,18 @@ int matrixSMTick(int state) {
 			break;
 		case matrix_nextLevelRelease:
 			if (!btn) {
-				if (level > 7) { 
+				if (length == 0) {
+					if (songPlaying) {
+						state = matrix_gameOver;
+						patterns[0] = 0x00;
+						patterns[1] = 0x02;
+						patterns[2] = 0x02;
+						patterns[3] = 0x3E;
+						patterns[4] = 0x00;
+					}
+					lost = 1;
+				}
+				else if (level > 7) { 
 					if (songPlaying) {
 						state = matrix_gameWon; 
 						patterns[0] = 0x3C;
@@ -92,6 +103,20 @@ int matrixSMTick(int state) {
 				pattern = 0x80;
 				row = 0xFE;
 				won = 0;
+				start = 0;
+				patterns[0] = 0x00;
+				patterns[1] = 0x00;
+				patterns[2] = 0x00;
+				patterns[3] = 0x00;
+				patterns[4] = 0x00;
+			}
+			break;
+		case matrix_gameOver:
+			if (!songPlaying) {
+				state = matrix_waitStart;
+				pattern = 0x80;
+				row = 0xFE;
+				lost = 0;
 				start = 0;
 				patterns[0] = 0x00;
 				patterns[1] = 0x00;
@@ -184,15 +209,26 @@ int matrixSMTick(int state) {
 			}
 			break;
 		case matrix_nextLevel:
+			high = 1;
+			for (i = 0; i < level; ++i) high *= 2;
+			low = 1;
+			for (i = 0; i < level-1; ++i) low *= 2;
+			
+			length = 0;
+			for (i = 0; i < 5; ++i) {
+				if (patterns[i]&high && patterns[i]&low) {
+					++length;
+				}
+				else patterns[i] &= (~high);
+			}
+			
 			++level;
 			--gameSpeed;
 			tmp = 1;
 			for (i = 0; i < level; ++i) tmp *= 2;
-			patterns[1] |= tmp;
-			//patterns[2] |= tmp;
-			//patterns[3] |= tmp;
-			break;
-		case matrix_gameWon:
+			if (length >= 2) patterns[1] |= tmp;
+			if (length >= 1) patterns[2] |= tmp;
+			if (length >= 3) patterns[3] |= tmp;
 			break;
 		default:
 			break;
