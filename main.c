@@ -1,11 +1,11 @@
 /*	Author: ejack023
- *	 *	Lab Section: 023
- *	  *	Assignment: Lab #10  Exercise #4
- *	   *
- *	    *	I acknowledge all content contained herein, excluding template or example
- *	     *	code, is my own original work.
- *	      *
- *	       *	Demo Link: https://www.youtube.com/watch?v=Jv_eFe8WnDE&ab_channel=EthanJackson
+ *	Lab Section: 023
+ *	Assignment: Lab #11  FINAL
+ *	 
+ *	 I acknowledge all content contained herein, excluding template or example
+ *	 code, is my own original work.
+ *	  
+ *	 Demo Link: https://www.youtube.com/watch?v=BAO2CzRwX24&ab_channel=EthanJackson
  *	        */
 
 #include <avr/io.h>
